@@ -3,7 +3,7 @@ import sys
 import os
 import json
 
-USE_AVAILABLE_PORT=os.environ.get("USE_AVAILABLE_PORT", True) == "1"
+USE_AVAILABLE_PORT = os.environ.get("USE_AVAILABLE_PORT", True)
 SERVER_PORT = int(os.environ.get("SERVER_PORT", 9000))
 
 

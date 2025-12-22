@@ -6,7 +6,7 @@ from plotune_sdk import PlotuneRuntime
 from utils import get_config, get_custom_config
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from typing import Dict, Optional, List,Union, TypeAlias, Any
-
+from time import time
 from uuid import uuid4
 
 from core.io.http_reader import HTTPPool
@@ -40,32 +40,28 @@ class RelayAgent:
         self.runtime.server.on_ws()(self.stream)
         
     async def stream(self, signal_name: str, websocket: WebSocket, data: Any):
+        print(signal_name,"requested")
         q = asyncio.Queue()
         handler = None
 
-        # listeners: List[Dict[str, ListenerType]] olarak tanımlı
         for entry in self.listeners:
-            # her entry bir dict: {id: listener}
             for uid, _listener in entry.items():
-                # signals property lazy olduğundan önce try/except ile kontrol edelim
                 try:
                     signals = _listener.signals
                 except Exception:
                     signals = None
 
-                if signals and signal_name in signals:
+                if signal_name in signals:
                     handler = _listener
                     break
             if handler:
                 break
 
         if not handler:
-            # sinyal bulunamadı; istemciye uygun bir hata dön veya WS kapat
             await websocket.send_json({"error": "No listener for signal"})
             await websocket.close()
             return
 
-        # kaydol, dinleme task'ını başlat
         await handler.register(signal_name, q)
         task = asyncio.create_task(handler.listen(signal_name))
         self.tasks.append(task)
@@ -80,9 +76,16 @@ class RelayAgent:
                     # queue hatası olsa da döngü devam etsin
                     print("queue get error:", exc)
                     continue
+                finally:
+                    q.task_done()
 
                 try:
-                    await websocket.send_json(payload)
+                    value = payload.get("value")
+                    #print(f"Received WS signal {signal_name}: {value}")
+                    await websocket.send_json({
+                                "timestamp": payload.get("time", time()),
+                                "value": value
+                            })
                     await asyncio.sleep(0.03)
                 except WebSocketDisconnect:
                     # client kapattı
@@ -112,15 +115,14 @@ class RelayAgent:
 
 
     async def fetch_signals(self, data: dict):
-        await self._last_added.wait_for_signals()
-
-        if not self._last_added or not hasattr(self._last_added, "signals"):
+        _signals = await self._last_added.wait_for_signals()
+        print("signals: ",_signals)
+        if not _signals:
+            print(self._last_added.url, "signals empty")
             return {"headers": []}
         
         return {
-            "headers": [
-                self._last_added.signals
-            ]
+            "headers": _signals
         }
 
     async def _new_connection(self, data:dict):
@@ -129,7 +131,7 @@ class RelayAgent:
         connection_id = uuid4().hex[:6]
 
         listener = None
-
+        print(form.source_type, form.http_url)
         if form.source_type == "http_poll":
             listener = HTTPPool(
                 form.http_url,
@@ -153,6 +155,7 @@ class RelayAgent:
         self._last_added = listener
         
         print(self._last_added.__class__," added to listeners")
+        return {"status": "success", "message": "Form saved!"}
 
 
 

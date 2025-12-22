@@ -64,21 +64,29 @@ class HTTPPool:
                 queues.remove(q)
 
     async def listen(self, signal_name: str) -> None:
+        print("Listenning",signal_name)
         async with httpx.AsyncClient() as client:
             try:
                 while True:
+                    print("await response")
                     resp = await client.get(
                         f"{self.url}/{signal_name}",
                         timeout=10.0,
                     )
+                    
                     resp.raise_for_status()
                     payload = resp.json()
 
-                    async with self._lock:
-                        for q in self.queue_handlers.get(signal_name, []):
-                            await q.put(payload)
+                    print("Payload : ",payload)
 
-                    await asyncio.sleep(self.interval)
+                    async with self._lock:
+                        print("handler put queue")
+                        for q in self.queue_handlers.get(signal_name, []):
+                            print(signal_name,"handler",q)
+                            await q.put(payload)
+                            print("Putted")
+
+                    await asyncio.sleep(self.interval/1000)
 
             except asyncio.CancelledError:
                 raise
