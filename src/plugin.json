@@ -1,0 +1,33 @@
+{
+    "name": "Plotune Relay Extension",
+    "id": "plotune_relay_ext",
+    "version": "v0.1.0",
+    "description": "Universal data relay extension for Plotune Core. Supports WebSocket and HTTP polling sources.",
+    "mode": "online",
+    "author": "Plotune SDK Team",
+    "cmd": [
+        "python",
+        "-m",
+        "plotune_relay_extension.main"
+    ],
+    "enabled": true,
+    "last_updated": "21.12.2025",
+    "git_path": "https://github.com/baksi-org/plotune-relay-ext",
+    "category": "Device",
+    "post_url": "http://localhost:8000/api/extension_click",
+    "webpage": "https://plotune.net/",
+    "file_formats": [],
+    "ask_form": true,
+    "connection": {
+        "ip": "127.0.0.1",
+        "port": 0,
+        "target": "127.0.0.1",
+        "target_port": 8000
+    },
+    "configuration": {
+        "mode": "WebSocket",
+        "auto_reconnect": true,
+        "headers": {},
+        "auth_token": ""
+    }
+}
