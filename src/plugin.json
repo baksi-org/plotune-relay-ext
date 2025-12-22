@@ -1,14 +1,13 @@
 {
     "name": "Plotune Relay Extension",
     "id": "plotune_relay_ext",
-    "version": "v0.1.0",
+    "version": "v1.0.0",
     "description": "Universal data relay extension for Plotune Core. Supports WebSocket and HTTP polling sources.",
     "mode": "online",
     "author": "Plotune SDK Team",
     "cmd": [
         "python",
-        "-m",
-        "plotune_relay_extension.main"
+        "main.py"
     ],
     "enabled": true,
     "last_updated": "21.12.2025",

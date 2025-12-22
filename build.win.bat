@@ -59,10 +59,9 @@ pyinstaller --name %APP_NAME% ^
 echo Copying plugin.json...
 copy src\plugin.json "%DIST_DIR%\plugin.json" /Y
 
-:: Patch plugin.json
-echo Patching plugin.json cmd field...
-powershell -NoProfile -Command "$p='dist\plugin.json'; $json=Get-Content $p -Raw | ConvertFrom-Json; $json.cmd=@('plotune_relay_ext.exe'); $json | ConvertTo-Json -Depth 10 | Set-Content $p -Encoding UTF8"
-
+:: Patch plugin.json (UTF-8 no BOM)
+echo Patching plugin.json cmd field (no BOM)...
+python scripts\patch_plugin.py
 
 :: Create ZIP
 echo Creating ZIP archive...
