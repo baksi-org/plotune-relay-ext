@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 echo ==================================================
-echo Plotune relay Extension Builder
+echo Plotune Relay Extension Builder (Windows / onefile)
 echo ==================================================
 
 :: Activate virtual environment
@@ -29,15 +29,16 @@ if errorlevel 1 (
     pip install pyinstaller
 )
 
-:: Set variables
+:: Variables
+set APP_NAME=plotune_relay_ext
 set ZIP_NAME=plotune-relay-ext-windows-x86_64.zip
 set DIST_DIR=dist
 set HISTORY_DIR=%DIST_DIR%\history
 
-:: Create history folder if missing
+:: History folder
 if not exist "%HISTORY_DIR%" mkdir "%HISTORY_DIR%"
 
-:: Move previous zip to history if exists
+:: Archive previous ZIP
 if exist "%DIST_DIR%\%ZIP_NAME%" (
     for /f "tokens=1-6 delims=/:. " %%a in ("%date% %time%") do (
         set DATE_TAG=%%c%%a%%b_%%d%%e%%f
@@ -46,36 +47,36 @@ if exist "%DIST_DIR%\%ZIP_NAME%" (
     move "%DIST_DIR%\%ZIP_NAME%" "%HISTORY_DIR%\%ZIP_NAME%_!DATE_TAG!"
 )
 
-:: Build executable
+:: Build EXE (ONEFILE)
 echo Building executable...
-pyinstaller --name plotune_relay_ext ^
-            --onedir ^
+pyinstaller --name %APP_NAME% ^
+            --onefile ^
             --noconfirm ^
             --icon assets/logo.ico ^
             src\main.py
 
-:: Copy plugin.json
-echo Copying plugin.json to build directory...
-copy src\plugin.json dist\plotune_relay_ext\plugin.json /Y
+:: Copy plugin.json next to EXE
+echo Copying plugin.json...
+copy src\plugin.json "%DIST_DIR%\plugin.json" /Y
 
-:: Patch plugin.json for Windows executable
-echo Patching plugin.json cmd field for Windows build...
+:: Patch plugin.json
+echo Patching plugin.json cmd field...
+powershell -NoProfile -Command "$p='dist\plugin.json'; $json=Get-Content $p -Raw | ConvertFrom-Json; $json.cmd=@('plotune_relay_ext.exe'); $json | ConvertTo-Json -Depth 10 | Set-Content $p -Encoding UTF8"
 
-powershell -NoProfile -Command "$p='dist\plotune_relay_ext\plugin.json'; $json=Get-Content $p -Raw | ConvertFrom-Json; $json.cmd=@('plotune_relay_ext.exe'); $json | ConvertTo-Json -Depth 10 | Set-Content $p -Encoding UTF8"
 
-
-:: Create ZIP archive
+:: Create ZIP
 echo Creating ZIP archive...
-cd dist
+cd %DIST_DIR%
 
-powershell -NoProfile -Command "Compress-Archive -Path 'plotune_relay_ext\*' -DestinationPath '%ZIP_NAME%' -Force"
+powershell -NoProfile -Command ^
+"Compress-Archive -Path '%APP_NAME%.exe','plugin.json' -DestinationPath '%ZIP_NAME%' -Force"
 
+:: SHA256
 certutil -hashfile %ZIP_NAME% SHA256 | findstr /v "hash" > %ZIP_NAME%.sha256
 
 cd ..
 
-
 echo ==================================================
-echo Build and ZIP completed successfully!
+echo Build completed successfully (Windows / onefile)
 echo ==================================================
 pause

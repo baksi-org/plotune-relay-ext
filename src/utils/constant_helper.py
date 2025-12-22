@@ -27,7 +27,7 @@ def get_config() -> Dict[str, Any]:
     If USE_AVAILABLE_PORT is enabled, the runtime will bind
     to an automatically selected available port.
     """
-    with open(CONFIG_PATH, "r", encoding="utf-8") as file:
+    with open(CONFIG_PATH, "r", encoding="utf-8-sig") as file:
         config = json.load(file)
 
     if USE_AVAILABLE_PORT:
