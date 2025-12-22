@@ -9,7 +9,7 @@ APP_NAME="plotune_relay_ext"
 ARCHIVE_NAME="plotune-relay-ext-linux-x86_64.tar.gz"
 DIST_DIR="dist"
 HISTORY_DIR="$DIST_DIR/history"
-VENV_DIR=".venv"
+VENV_DIR="..venv"
 
 # --------------------------------------------------
 # Virtual environment
@@ -92,7 +92,7 @@ EOF
 # --------------------------------------------------
 echo "Creating tar.gz archive..."
 cd "$DIST_DIR"
-tar -czf "$ARCHIVE_NAME" "$APP_NAME"
+tar -czf "$ARCHIVE_NAME" "$APP_NAME"/*
 sha256sum "$ARCHIVE_NAME" > "$ARCHIVE_NAME.sha256"
 cd ..
 

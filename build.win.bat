@@ -61,23 +61,19 @@ copy src\plugin.json dist\plotune_relay_ext\plugin.json /Y
 :: Patch plugin.json for Windows executable
 echo Patching plugin.json cmd field for Windows build...
 
-powershell -Command ^
-    "$p = 'dist\plotune_relay_ext\plugin.json'; ^
-     $json = Get-Content $p -Raw | ConvertFrom-Json; ^
-     $json.cmd = @('plotune_relay_ext.exe'); ^
-     $json | ConvertTo-Json -Depth 10 | Set-Content $p -Encoding UTF8"
+powershell -NoProfile -Command "$p='dist\plotune_relay_ext\plugin.json'; $json=Get-Content $p -Raw | ConvertFrom-Json; $json.cmd=@('plotune_relay_ext.exe'); $json | ConvertTo-Json -Depth 10 | Set-Content $p -Encoding UTF8"
+
 
 :: Create ZIP archive
 echo Creating ZIP archive...
 cd dist
-timeout 2
-powershell -Command "Compress-Archive -Path '%DIST_DIR%\plotune_relay_ext' -DestinationPath '%DIST_DIR%\%ZIP_NAME%' -Force"
-timeout 1
 
-echo Certification of %ZIP_NAME%
+powershell -NoProfile -Command "Compress-Archive -Path 'plotune_relay_ext\*' -DestinationPath '%ZIP_NAME%' -Force"
+
 certutil -hashfile %ZIP_NAME% SHA256 | findstr /v "hash" > %ZIP_NAME%.sha256
 
 cd ..
+
 
 echo ==================================================
 echo Build and ZIP completed successfully!
