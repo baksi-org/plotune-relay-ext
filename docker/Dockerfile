@@ -1,11 +1,18 @@
 FROM python:3.14.2-slim
 
-WORKDIR /app
-ENV PYSTRAY_HEADLESS=1
-ENV USE_AVAILABLE_PORT=0
-ENV SERVER_PORT=9000
+# ------------------------------------------------------------------
+# Environment
+# ------------------------------------------------------------------
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYSTRAY_HEADLESS=1 \
+    USE_AVAILABLE_PORT=0 \
+    SERVER_PORT=9000
 
-RUN apt-get update && apt-get install -y \
+# ------------------------------------------------------------------
+# System dependencies
+# ------------------------------------------------------------------
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     zlib1g-dev \
     libjpeg-dev \
@@ -16,10 +23,22 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# ------------------------------------------------------------------
+# App setup
+# ------------------------------------------------------------------
+WORKDIR /app
+
+# Install dependencies first (better layer caching)
 COPY requirements.txt .
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
 
+# Copy application source
 COPY src/ /app
 
+# ------------------------------------------------------------------
+# Runtime
+# ------------------------------------------------------------------
 CMD ["python", "main.py"]
+

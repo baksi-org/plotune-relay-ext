@@ -1,6 +1,7 @@
 import time
 import random
-from fastapi import FastAPI, HTTPException
+import asyncio
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 import uvicorn
 
 app = FastAPI()
@@ -24,7 +25,7 @@ def list_signals():
     }
 
 # -------------------------
-# Signal endpoint (authoritative)
+# Signal endpoint (authoritative - HTTP)
 # -------------------------
 @app.get("/data/{signal_name}")
 def get_signal(signal_name: str):
@@ -41,7 +42,31 @@ def get_signal(signal_name: str):
     }
 
 # -------------------------
+# Signal endpoint (WebSocket)
+# -------------------------
+@app.websocket("/ws/{signal_name}")
+async def websocket_signal(websocket: WebSocket, signal_name: str):
+    await websocket.accept()
+
+    if signal_name not in SIGNALS:
+        await websocket.close(code=1008)
+        return
+
+    try:
+        while True:
+            payload = {
+                "key": signal_name,
+                "value": SIGNALS[signal_name](),
+                "time": time.time()
+            }
+
+            await websocket.send_json(payload)
+            await asyncio.sleep(0.1)
+    except WebSocketDisconnect:
+        pass
+
+# -------------------------
 # Run
 # -------------------------
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=9001)
+    uvicorn.run(app, host="localhost", port=9001)
