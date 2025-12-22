@@ -3,17 +3,19 @@ import httpx
 from typing import Dict, List, Optional
 
 
+from utils.http_helper import derive_http_base
+
 class HTTPPool:
     def __init__(
         self,
         url: str,
         interval: int,
-        endpoint: str,
         mapping: Dict[str, str] | None = None,
     ):
         self.url = url.rstrip("/")
+        
+        self._http_base_url = derive_http_base(self.url)
         self.interval = interval
-        self.endpoint = endpoint if endpoint.startswith("/") else f"/{endpoint}" # to fetch data from eq: "/data"
         self.mapping = mapping or {
             "key": "key",
             "time": "time",
@@ -38,7 +40,7 @@ class HTTPPool:
 
     async def _fetch_signals(self) -> None:
         async with httpx.AsyncClient() as client:
-            resp = await client.get(f"{self.url}/signals", timeout=10.0)
+            resp = await client.get(f"{self._http_base_url}/signals", timeout=10.0)
             resp.raise_for_status()
             self._signals = resp.json().get("signals")
 
@@ -66,7 +68,7 @@ class HTTPPool:
             try:
                 while True:
                     resp = await client.get(
-                        f"{self.url}{self.endpoint}/{signal_name}",
+                        f"{self.url}/{signal_name}",
                         timeout=10.0,
                     )
                     resp.raise_for_status()

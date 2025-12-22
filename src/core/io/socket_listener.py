@@ -2,19 +2,16 @@ import asyncio
 import httpx
 from typing import Dict, List, Optional
 
+from utils.http_helper import derive_http_base
 
 class SocketListener:
     def __init__(
         self,
-        url: str,
-        ws_endpoint: str,
+        url: str, # ws://localhost:9000/ws
         auto_reconnect: bool = True,
         mapping: Dict[str, str] | None = None,
     ):
         self.url = url.rstrip("/")
-        self.ws_endpoint = (
-            ws_endpoint if ws_endpoint.startswith("/") else f"/{ws_endpoint}"
-        )
         self.auto_reconnect = auto_reconnect
 
         self.mapping = mapping or {
@@ -23,6 +20,7 @@ class SocketListener:
             "value": "value",
         }
 
+        self._http_base_url = derive_http_base(self.url)
         self._signals: Optional[List[str]] = None
         self._signals_task: Optional[asyncio.Task] = None
 
@@ -41,7 +39,7 @@ class SocketListener:
 
     async def _fetch_signals(self) -> None:
         async with httpx.AsyncClient() as client:
-            resp = await client.get(f"{self.url}/signals", timeout=10.0)
+            resp = await client.get(f"{self._http_base_url}/signals", timeout=10.0)
             resp.raise_for_status()
             self._signals = resp.json()
 

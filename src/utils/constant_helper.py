@@ -3,7 +3,9 @@ import sys
 import os
 import json
 
-USE_AVAILABLE_PORT=True
+USE_AVAILABLE_PORT=os.environ.get("USE_AVAILABLE_PORT", True) == "1"
+SERVER_PORT = int(os.environ.get("SERVER_PORT", 9000))
+
 
 if getattr(sys, 'frozen', False):
     BASE_DIR = os.path.dirname(sys.executable)
@@ -18,7 +20,10 @@ if USE_AVAILABLE_PORT:
 @lru_cache(maxsize=1)
 def get_config() -> dict:
     conf = json.load(open(CONFIG_PATH, "r"))
-    conf["connection"]["port"] = AVAILABLE_PORT
+    if USE_AVAILABLE_PORT:
+        conf["connection"]["port"] = AVAILABLE_PORT
+    else:
+        conf["connection"]["port"] = SERVER_PORT
     return conf
 
 @lru_cache(maxsize=1)
