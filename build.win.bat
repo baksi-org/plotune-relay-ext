@@ -58,11 +58,20 @@ pyinstaller --name plotune_relay_ext ^
 echo Copying plugin.json to build directory...
 copy src\plugin.json dist\plotune_relay_ext\plugin.json /Y
 
+:: Patch plugin.json for Windows executable
+echo Patching plugin.json cmd field for Windows build...
+
+powershell -Command ^
+    "$p = 'dist\plotune_relay_ext\plugin.json'; ^
+     $json = Get-Content $p -Raw | ConvertFrom-Json; ^
+     $json.cmd = @('plotune_relay_ext.exe'); ^
+     $json | ConvertTo-Json -Depth 10 | Set-Content $p -Encoding UTF8"
+
 :: Create ZIP archive
 echo Creating ZIP archive...
 cd dist
 timeout 2
-powershell -Command "Compress-Archive -Path plotune_relay_ext\* -DestinationPath %ZIP_NAME% -Force"
+powershell -Command "Compress-Archive -Path '%DIST_DIR%\plotune_relay_ext' -DestinationPath '%DIST_DIR%\%ZIP_NAME%' -Force"
 timeout 1
 
 echo Certification of %ZIP_NAME%
