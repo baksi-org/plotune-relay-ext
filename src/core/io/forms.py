@@ -14,8 +14,7 @@ def dynamic_relay_form() -> dict:
     # Source
     # ------------------------------------------------------------------
     (
-        form.add_tab("Source")
-        .add_combobox(
+        form.add_tab("Source").add_combobox(
             "source_type",
             "Source Type",
             ["websocket", "http_poll"],
@@ -91,8 +90,7 @@ def dynamic_relay_form() -> dict:
     base_url = f"http://{host}:{port}"
 
     (
-        form.add_group("Actions")
-        .add_button(
+        form.add_group("Actions").add_button(
             "start_relay",
             "Start Relay",
             {

@@ -15,14 +15,14 @@ SIGNALS = {
     "voltage": lambda: random.uniform(3.0, 3.3),
 }
 
+
 # -------------------------
 # Discovery
 # -------------------------
 @app.get("/signals")
 def list_signals():
-    return {
-        "signals": list(SIGNALS.keys())
-    }
+    return {"signals": list(SIGNALS.keys())}
+
 
 # -------------------------
 # Signal endpoint (authoritative - HTTP)
@@ -30,16 +30,10 @@ def list_signals():
 @app.get("/data/{signal_name}")
 def get_signal(signal_name: str):
     if signal_name not in SIGNALS:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Signal '{signal_name}' not found"
-        )
+        raise HTTPException(status_code=404, detail=f"Signal '{signal_name}' not found")
 
-    return {
-        "key": signal_name,
-        "value": SIGNALS[signal_name](),
-        "time": time.time()
-    }
+    return {"key": signal_name, "value": SIGNALS[signal_name](), "time": time.time()}
+
 
 # -------------------------
 # Signal endpoint (WebSocket)
@@ -57,13 +51,14 @@ async def websocket_signal(websocket: WebSocket, signal_name: str):
             payload = {
                 "key": signal_name,
                 "value": SIGNALS[signal_name](),
-                "time": time.time()
+                "time": time.time(),
             }
 
             await websocket.send_json(payload)
             await asyncio.sleep(0.1)
     except WebSocketDisconnect:
         pass
+
 
 # -------------------------
 # Run
